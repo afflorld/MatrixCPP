@@ -8,11 +8,16 @@
 using namespace std;
 
 template <typename T> struct Komplex{
+     using value_type = T;
 
      T re;
      T im;
 
      Komplex(T r = T {}, T i = T {}) : re(r), im(i) {}
+
+     template <typename U>
+     
+     Komplex(const Komplex<U>& other) : re(static_cast<T>(other.re)), im(static_cast<T>(other.im)) {}
 
      Komplex operator+(const Komplex& other) const {
           return Komplex(re + other.re, im + other.im);
@@ -169,20 +174,23 @@ template <typename T> class Matrix{
 
           for(auto& row : mat) {
                for(auto& elem : row) {
-                    elem = T
-                    {(double)1 + rand() % 5,(double)1 + rand() % 5};
+                    typename T::value_type real = static_cast<typename T::value_type>(1 + rand() % 5);
+                    typename T::value_type imag = static_cast<typename T::value_type>(1 + rand() % 5);
+                    elem = T{real, imag};
                }
           }
      }
 
      Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), mat(other.mat) {}
 
-     template <typename U>
+     size_t getRows() const { return rows; }
+     size_t getCols() const { return cols; }
 
-          Matrix(const Matrix<U>& other) : rows(other.rows), cols(other.cols), mat(other.rows, vector<T>(other.cols)) {
+     template <typename U>
+          Matrix(const Matrix<U>& other) : rows(other.getRows()), cols(other.getCols()), mat(other.getRows(), vector<T>(other.getCols())) {
                for (size_t i = 0; i < rows; ++i) {
                     for (size_t j = 0; j < cols; ++j) {
-                         mat[i][j] = static_cast<T>(other.mat[i][j]);
+                         mat[i][j] = other[i][j]; 
                     }
                }
           }
@@ -526,6 +534,10 @@ int main (int argc, char *argv[]) {
      Matrix<Komplex<double>> B(2,2);
      Matrix<Komplex<double>> C(2,2);
      Matrix<Komplex<double>> X;
+
+     Matrix<Komplex<int>> G(2,2);
+     Matrix<Komplex<double>> P(G);
+     Matrix<Komplex<double>> R(P);
 
      try{
           cout << "A" << endl;
