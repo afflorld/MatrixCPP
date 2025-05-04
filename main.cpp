@@ -1,266 +1,666 @@
-#include <iostream>
 #include <ostream>
+#include <stdexcept>
 #include <vector>
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+
 using namespace std;
 
-struct Komplex{
+template <typename T> struct Komplex{
 
-     vector<double> p;
-     Komplex(double r = 0.0, double i = 0.0) : p{r,i} {}
-};
+     T re;
+     T im;
 
-template<typename Derived> class Operations{
-     public:
+     Komplex(T r = T {}, T i = T {}) : re(r), im(i) {}
 
-          Derived operator+(const Derived& other) const {
-               Derived result;
-               result.rows = other.rows;
-               result.cols = other.cols;
-               result.mat.resize(result.rows, vector<Komplex>(result.cols));
+     Komplex operator+(const Komplex& other) const {
+          return Komplex(re + other.re, im + other.im);
+     }
 
-               for (int i = 0; i < other.rows; i++) {
-                    for (int j = 0; j < other.cols; j++) {
-                         result.mat[i][j].p[0] = other.mat[i][j].p[0] + other.mat[i][j].p[0];
-                         result.mat[i][j].p[1] = other.mat[i][j].p[1] + other.mat[i][j].p[1];
-                    }
-               }
-               return result;
+     Komplex operator+(const double scalar) const {
+          return Komplex(re + scalar, im);
+     }
+
+     Komplex operator-(const Komplex& other) const {
+          return Komplex(re - other.re, im - other.im);
+     }
+
+     Komplex operator-() const {
+          return Komplex(-re, -im);
+     }
+
+     Komplex operator-(const double scalar) const{
+
+          return Komplex(re - scalar, im);
+
+     }
+
+     Komplex operator*(double scalar) const {
+
+          return Komplex(re * scalar, im * scalar);
+
+     }
+
+     Komplex operator/(double scalar) const {
+
+          if (scalar == 0) {
+               throw::invalid_argument("Delenie nulou");
           }
+          return Komplex(re / scalar, im / scalar);
 
-          Derived operator-(const Derived& other) const {
-               Derived result;
-               result.rows = other.rows;
-               result.cols = other.cols;
-               result.mat.resize(result.rows, vector<Komplex>(result.cols));
+     }
 
-               for (int i = 0; i < other.rows; i++) {
-                    for (int j = 0; j < other.cols; j++) {
-                         result.mat[i][j].p[0] = other.mat[i][j].p[0] - other.mat[i][j].p[0];
-                         result.mat[i][j].p[1] = other.mat[i][j].p[1] - other.mat[i][j].p[1];
-                    }
-               }
-               return result;
+     Komplex operator/(const Komplex& other) const {
+          if (other.re == 0 && other.im == 0) {
+               throw::invalid_argument("Delenie nulou");
           }
+          T denom = other.re * other.re + other.im * other.im;
+          return Komplex((re * other.re + im * other.im) / denom,
+                    (im * other.re - re * other.im) / denom);
+     }
 
-          Derived operator-() const{
 
-               Derived result = static_cast<const Derived&>(*this);
+     Komplex operator*(const Komplex& other) const {
+          return Komplex(re * other.re - im * other.im, re * other.im + im * other.re);
+     }
 
-               for (int i = 0; i < result.rows; i++) {
-                    for (int j = 0; j < result.cols; j++) {
-                         result.mat[i][j].p[0] = -result.mat[i][j].p[0];
-                         result.mat[i][j].p[1] = -result.mat[i][j].p[1];
-                    }
-               }
+     Komplex operator+=(const Komplex& other) {
+          re += other.re;
+          im += other.im;
+          return *this;
+     }
 
-               return result;
+     Komplex operator-=(const Komplex& other) {
+          re -= other.re;
+          im -= other.im;
+          return *this;
+     }
 
+     Komplex operator+=(const double scalar) {
+          re += scalar;
+          return *this;
+     }
+     Komplex operator-=(const double scalar) {
+          re -= scalar;
+          return *this;
+     }
+
+     Komplex operator*=(const double scalar) {
+          re *= scalar;
+          im *= scalar;
+          return *this;
+     }
+
+     Komplex operator*=(const Komplex& other) {
+          T temp_re = re * other.re - im * other.im;
+          im = re * other.im + im * other.re;
+          re = temp_re;
+          return *this;
+     }
+
+     Komplex operator/=(const double scalar) {
+          if (scalar == 0) {
+               throw::invalid_argument("Delenie nulou");
           }
+          re /= scalar;
+          im /= scalar;
+          return *this;
+     }
 
-
-          Derived operator+=(const Derived& other) {
-
-              Derived& result = static_cast<Derived&>(*this);
-              
-               for (int i = 0; i < other.rows; i++) {
-                    for (int j = 0; j < other.cols; j++) {
-                         result.mat[i][j].p[0] += other.mat[i][j].p[0];
-                         result.mat[i][j].p[1] += other.mat[i][j].p[1];
-                    }
-               }
-
-               return result;
-
-          };
-
-          Derived& operator+=(double scalar){
-
-               Derived& result = static_cast<Derived&>(*this);
-
-               for (int i = 0; i < result.rows; i++) {
-                    for (int j = 0; j < result.cols; j++) {
-                         result.mat[i][j].p[0] += scalar;
-                         result.mat[i][j].p[1] += scalar;
-                    }
-               }
-
-               return result;
-
+     Komplex operator=(const Komplex& other) {
+          if (this != &other) {
+               re = other.re;
+               im = other.im;
           }
+          return *this;
+     }
 
-          Derived operator-=(const Derived& other) {
-               Derived& result = static_cast<Derived&>(*this);
+     bool operator==(const Komplex& other) const {
+          return (re == other.re && im == other.im);
+     }
 
-               for (int i = 0; i < other.rows; i++) {
-                    for (int j = 0; j < other.cols; j++) {
-                         result.mat[i][j].p[0] -= other.mat[i][j].p[0];
-                         result.mat[i][j].p[1] -= other.mat[i][j].p[1];
-                    }
-               }
+     bool operator!=(const Komplex& other) const {
+          return !(re == other.re && im == other.im);
+     }
 
-               return result;
-
-          };
-
-          Derived& operator-=(double scalar){
-
-               Derived& result = static_cast<Derived&>(*this);
-
-               for (int i = 0; i < result.rows; i++) {
-                    for (int j = 0; j < result.cols; j++) {
-                         result.mat[i][j].p[0] -= scalar;
-                         result.mat[i][j].p[1] -= scalar;
-                    }
-               }
-
-               return result;
-
+     Komplex determinant() const {
+          if (re == 0 && im == 0) {
+               throw std::invalid_argument("Determinant je 0");
           }
+          return Komplex(re, im);
+     }
 
-          friend Derived operator*(const Derived& m,double scalar){
+     Komplex transpose() const {
+          return Komplex(re, -im);
+     }
 
-               Derived result = m;
+     Komplex conjugate() const {
+          return Komplex(re, -im);
+     }
 
-
-               for (int i = 0; i < result.rows; i++) {
-                    for (int j = 0; j < result.cols; j++) {
-                         result.mat[i][j].p[0] *= scalar;
-                         result.mat[i][j].p[1] *= scalar;
-                    }
-               }
-
-               return result;
-
+     Komplex inverse() const {
+          if (re == 0 && im == 0) {
+               throw std::invalid_argument("Inverz je neplatny");
           }
+          T denom = re * re + im * im;
+          return Komplex(re / denom, -im / denom);
+     }
 
-          Derived& operator=(const Derived& other) {
-               Derived& result = static_cast<Derived&>(*this);
-                    for (int i = 0; i < result.rows; i++) {
-                         for (int j = 0; j < result.cols; j++) {
-                              result.mat[i][j].p[0] = other.mat[i][j].p[0];
-                              result.mat[i][j].p[1] = other.mat[i][j].p[1];
-                         }
-                    }
-               return static_cast<Derived&>(*this);
-          }
 
-          bool operator==(const Derived& other) {
-               Derived& result = static_cast<Derived&>(*this);
-               for (int i = 0; i < result.rows; i++) {
-                    for (int j = 0; j < result.cols; j++) {
-                         if (result.mat[i][j].p[0] != other.mat[i][j].p[0] || result.mat[i][j].p[1] != other.mat[i][j].p[1]) {
-                              return false;
-                         }
-                    }
-               }
-               return true;
-          }
-
-          bool operator!=(const Derived& other) {
-               Derived& result = static_cast<Derived&>(*this);
-               for (int i = 0; i < result.rows; i++) {
-                    for (int j = 0; j < result.cols; j++) {
-                         if (result.mat[i][j].p[0] != other.mat[i][j].p[0] || result.mat[i][j].p[1] != other.mat[i][j].p[1]) {
-                              return true;
-                         }
-                    }
-               }
-               return false;
-          }
-
-          friend ostream& operator<<(ostream& os, const Derived& obj) {
-               for (int i = 0; i < obj.rows; i++) {
-                    for (int j = 0; j < obj.cols; j++) {
-                         os << obj.mat[i][j].p[0] << " + " << obj.mat[i][j].p[1] << "i" << " ";
-                    }
-                    os << endl;
-               }
-               return os;
-          }
+     friend ostream& operator<<(ostream& os, const Komplex<T>& k) {
+          os << k.re << " + " << k.im << "i";
+          return os;
+     }
 
 };
 
-template<typename T>class Matrix : public Operations<Matrix<T>> {
-     friend class Operations<Matrix<T>>;
-     
-     vector<vector<Komplex>> mat;
+template <typename T> class Matrix{
+
+     vector<vector<T>> mat;
      size_t rows;
      size_t cols;
 
-     public:
+     public: 
 
-     Matrix() : rows(0), cols(0) {};
+     Matrix() : rows(0), cols(0) {}
 
-     Matrix(double rows, double cols) : rows(rows), cols(cols) ,mat(rows, vector<Komplex> (cols)){
+     Matrix(size_t r, size_t c) : rows(r), cols(c), mat(r, vector<T>(c)) {
 
-          cout <<"Inicializacia matice" << endl;
-
-          for (int i = 0; i < rows; i++) {
-               for (int j = 0; j < cols; j++) {
-                    for(int k = 0; k < 2; k++){
-                         mat[i][j].p[k] = rand() % 10;
-                    }
-                    print();
+          for(auto& row : mat) {
+               for(auto& elem : row) {
+                    elem = T
+                    {(double)1 + rand() % 5,(double)1 + rand() % 5};
                }
           }
-     };
+     }
 
-     void print(){
+     Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), mat(other.mat) {}
 
-          for (int i = 0; i < rows; i++) {
-               for (int j = 0; j < cols; j++) {
-                    cout << mat[i][j].p[0] << " + " << mat[i][j].p[1] << "i" << " ";
+     template <typename U>
+
+          Matrix(const Matrix<U>& other) : rows(other.rows), cols(other.cols), mat(other.rows, vector<T>(other.cols)) {
+               for (size_t i = 0; i < rows; ++i) {
+                    for (size_t j = 0; j < cols; ++j) {
+                         mat[i][j] = static_cast<T>(other.mat[i][j]);
+                    }
+               }
+          }
+
+     void print() const {
+          for(const auto& row : mat) {
+               for (const auto& elem : row) {
+                    cout << elem << " ";
                }
                cout << endl;
           }
      }
 
-
-     ~Matrix() {
-          for (int i = 0; i < rows; i++) {
-               for (int j = 0; j < cols; j++) {
-                    mat[i][j].p.clear();
+     Matrix operator+(const Matrix& other) const {
+          if (rows != other.rows || cols != other.cols) {
+               throw::invalid_argument("Nespravne rozmery matice");
+          }
+          Matrix result(rows, cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    result.mat[i][j] = mat[i][j] + other.mat[i][j];
                }
           }
+          return result;
+     }
+
+     Matrix operator+(const double scalar) const {
+          Matrix result(rows, cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    result.mat[i][j] = mat[i][j] + scalar;
+               }
+          }
+          return result;
+     }
+
+     Matrix operator-(const Matrix& other) const {
+          if (rows != other.rows || cols != other.cols) {
+               throw::invalid_argument("Nespravne rozmery matice");
+          }
+          Matrix result(rows, cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    result.mat[i][j] = mat[i][j] - other.mat[i][j];
+               }
+          }
+          return result;
+     }
+
+     Matrix operator-(const double scalar) const {
+          Matrix result(rows, cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    result.mat[i][j] = mat[i][j] - scalar;
+               }
+          }
+          return result;
+     }
+
+     Matrix operator-() const {
+
+          Matrix result(rows, cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    result.mat[i][j] = -mat[i][j];
+               }
+          }
+          return result;
+
+     }
+
+     Matrix operator*(const Matrix& other) const {
+          if (cols != other.rows) {
+               throw::invalid_argument("Nespravne rozmery matice");
+          }
+          Matrix result(rows, other.cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < other.cols; ++j) {
+                    T sum{};  
+                    for (size_t k = 0; k < cols; ++k) {
+                         sum += mat[i][k] * other.mat[k][j];
+                    }
+                    result.mat[i][j] = sum;
+               }
+          }
+          return result;
+     }
+
+     Matrix operator*(const double scalar) const {
+          Matrix result(rows, cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    result.mat[i][j] = mat[i][j] * scalar;
+               }
+          }
+          return result;
+     }
+
+     Matrix operator/(const double scalar) const {
+          if (scalar == 0) {
+               throw::invalid_argument("Delenie nulou");
+          }
+          Matrix result(rows, cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    result.mat[i][j] = mat[i][j] / scalar;
+               }
+          }
+          return result;
+     }
+
+     Matrix& operator+=(const Matrix& other) {
+          if (rows != other.rows || cols != other.cols) {
+               throw::invalid_argument("Nespravne rozmery matice");
+          }
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    mat[i][j] += other.mat[i][j];
+               }
+          }
+          return *this;
+     }
+
+     Matrix& operator+=(const double scalar) {
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    mat[i][j] += scalar;
+               }
+          }
+          return *this;
+     }
+
+     Matrix& operator-=(const Matrix& other) {
+          if (rows != other.rows || cols != other.cols) {
+               throw::invalid_argument("Nespravne rozmery matice");
+          }
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    mat[i][j] -= other.mat[i][j];
+               }
+          }
+          return *this;
+     }
+
+     Matrix& operator-=(const double scalar) {
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    mat[i][j] -= scalar;
+               }
+          }
+          return *this;
+     }
+
+     Matrix& operator*=(const double scalar) {
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    mat[i][j] *= scalar;
+               }
+          }
+          return *this;
+     }
+
+     Matrix& operator*=(const Matrix& other) {
+          if (cols != other.rows) {
+               throw::invalid_argument("Nespravne rozmery matice");
+          }
+          Matrix result(rows, other.cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < other.cols; ++j) {
+                    T sum{};  
+                    for (size_t k = 0; k < cols; ++k) {
+                         sum += mat[i][k] * other.mat[k][j];
+                    }
+                    result.mat[i][j] = sum;
+               }
+          }
+          mat = result.mat;
+          cols = other.cols;  
+          return *this;
+     }
+
+     Matrix& operator/=(const double scalar) {
+          if (scalar == 0) {
+               throw::invalid_argument("Delenie nulou");
+          }
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    mat[i][j] /= scalar;
+               }
+          }
+          return *this;
+     }
+
+     Matrix& operator=(const Matrix& other) {
+          if (this != &other) {
+               rows = other.rows;
+               cols = other.cols;
+               mat = other.mat;
+          }
+          return *this;
+     }
+
+     bool operator==(const Matrix& other) const{
+          if (rows != other.rows || cols != other.cols) {
+               throw::invalid_argument("Nespravne rozmery matice");
+          }
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    if (mat[i][j] != other.mat[i][j]) {
+                         return false;
+                    }
+               }
+          }
+          return true;
+     }
+
+     bool operator!=(const Matrix& other) const{
+          if (rows != other.rows || cols != other.cols) {
+               throw::invalid_argument("Nespravne rozmery matice");
+          }
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    if (mat[i][j] != other.mat[i][j]) {
+                         return true;
+                    }
+               }
+          }
+          return false;
+     }
+
+     vector<T>& operator[](size_t index) {
+          if (index >= rows) {
+               throw::out_of_range("Nespravny rozmer indexu");
+          }
+          return mat[index];
+     }
+
+     const vector<T>& operator[](size_t index) const {
+          if (index >= rows) {
+               throw::out_of_range("Nespravny rozmer indexu");
+          }
+          return mat[index];
+     }
+
+     T determinant() const {
+          if (rows != cols) {
+               throw invalid_argument("Matica musi byt typu stvorec");
+          }
+
+          if (rows == 1) {
+               return mat[0][0]; 
+          }
+          else if (rows == 2) {
+               return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
+          }
+          else {
+               T det{};
+               for (size_t i = 0; i < rows; ++i) {
+                    Matrix<T> submatrix(rows - 1, cols - 1);
+                    for (size_t j = 1; j < rows; ++j) {
+                         size_t sub_col = 0;
+                         for (size_t k = 0; k < cols; ++k) {
+                              if (k == i) continue; 
+                              submatrix.mat[j-1][sub_col++] = mat[j][k];
+                         }
+                    }
+                    T sign = (i % 2 == 0) ? T(1) : T(-1);
+                    det = det + (mat[0][i] * sign) * submatrix.determinant();
+               }
+               return det;
+          }
+     }
+
+     Matrix transpose() const {
+          Matrix result(cols, rows);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    result.mat[j][i] = mat[i][j];
+               }
+          }
+          return  result;
+     }
+
+     Matrix conjugate() const {
+          Matrix result(rows, cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    result.mat[i][j] = mat[i][j].conjugate();
+               }
+          }
+          return  result;
+     }
+
+     Matrix inverse() const {
+          if (rows != cols) {
+               throw::invalid_argument("Matica musi byt typu stvorec");
+          }
+          T det = determinant();
+          if (det.re == 0 && det.im == 0) {
+               throw::invalid_argument("Matica nema inverznu hodnotu");
+          }
+          Matrix result(rows, cols);
+          for (size_t i = 0; i < rows; ++i) {
+               for (size_t j = 0; j < cols; ++j) {
+                    Matrix submatrix(rows - 1, cols - 1);
+                    for (size_t k = 0; k < rows; ++k) {
+                         for (size_t l = 0; l < cols; ++l) {
+                              if (k == i || l == j) continue;
+                              submatrix.mat[k < i ? k : k - 1][l < j ? l : l - 1] = mat[k][l];
+                         }
+                    }
+                    T sign = ((i + j) % 2 == 0) ? T(1) : T(-1);
+                    result.mat[j][i] = (sign * submatrix.determinant()) / det;
+               }
+          }
+          return result;
+     }
+
+     friend ostream& operator<<(ostream& os, const Matrix<T>& m) {
+          for (const auto& row : m.mat) {
+               for (const auto& elem : row) {
+                    os << elem << " ";
+               }
+               os << endl;
+          }
+          return os;
+     }
+
+     ~Matrix() {
           mat.clear();
-     };
+     }
 
 };
 
-
-
 int main (int argc, char *argv[]) {
 
-
-     Matrix<Komplex> A(2,2);
-     Matrix<Komplex> B(2,2);
-     Matrix<Komplex> C(2,2);
-     Matrix<Komplex> X;
+     srand(time(0));
 
 
-     cout << "A" << endl;
+     Matrix<Komplex<double>> A(2,2);
+     Matrix<Komplex<double>> B(2,2);
+     Matrix<Komplex<double>> C(2,2);
+     Matrix<Komplex<double>> X;
 
-     cout << A << endl;
+     try{
+          cout << "A" << endl;
 
-     cout << "B" << endl;
+          cout << A << endl;
 
-     cout << B << endl;
+          cout << "A[0][0] = 3 + 2" << endl;
 
-     cout << "C" << endl;
+          A[0][0] = Komplex<double>(3,2);
 
-     cout << C << endl;
+          cout << A << endl;
 
-     cout << "(-C)" << endl;
+          cout << "determinant" << endl;
 
-     cout << (-C) << endl;
+          cout << A.determinant() << endl;
 
-     cout << "(-C) * 2" << endl;
-     cout << (-C) * 2 << endl;
+          cout << "A.transpose()" << endl;
 
-     cout << "X" << endl;
+          cout << A.transpose() << endl;
 
-     X = A + B + (-C) * 2;
+          cout << "A.conjugate()" << endl;
 
-     cout << X << endl;
+          cout << A.conjugate() << endl;
 
+          cout << "A.inverse()" << endl;
+
+          cout << A << endl;
+
+          cout << A.inverse() << endl;
+
+          cout << "B" << endl;
+
+          cout << B << endl;
+
+          cout <<"C" << endl;
+
+          cout << C << endl;
+
+          cout << "(-C)" << endl;
+
+          cout << (-C) << endl;
+
+          cout << "A" << endl;
+
+          cout << A << endl;
+
+          cout << "B" << endl;
+
+          cout << B << endl;
+
+          cout << "C" << endl;
+
+          cout << C << endl;
+
+          cout << "X " << endl;
+
+          X = A + 3 - B + (-C) * 2;
+
+          cout << X << endl;
+
+          cout << "A" << endl;
+
+          cout << A << endl;
+
+          cout << "B" << endl;
+
+          cout << B << endl;
+
+          A = B;
+
+          cout << "A = B" << endl;
+
+          cout << A << endl;
+
+          cout << "A == B" << endl;
+
+          if(A == B) {
+               cout << "true" << endl;
+          }else{
+               cout << "false" << endl;
+          }
+
+          cout << "A != B" << endl;
+
+          if(A != B) {
+               cout << "true" << endl;
+          }else{
+               cout << "false" << endl;
+          }
+
+          cout << "A" << endl;
+
+          cout << A << endl;
+
+          cout << "A[][]" << endl;
+
+          cout << A[0][0] << endl;
+
+          cout << "A" << endl;
+
+          cout << A << endl;
+
+          cout << "B" << endl;
+
+          cout << B << endl;
+
+          cout << "A*B" << endl;
+
+          cout << A * B << endl;
+
+          cout << "A" << endl;
+
+          cout << A << endl;
+
+          cout << "B" << endl;
+
+          cout << B << endl;
+
+          cout << "A*=B" << endl;
+
+          A *= B;
+
+          cout << A << endl;
+
+          cout << "A/=2" << endl;
+
+          A /= 2;
+
+          cout << A << endl;
+
+     }catch(const exception& error) {
+
+          cout << "Chyba " << error.what() << endl;
+
+     }
+
+     return 0;
 }
